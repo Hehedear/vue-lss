@@ -7,26 +7,32 @@
             </div>
             <el-button type="info" @click="logout">退出</el-button></el-header>
         <el-container>
-            <el-aside width="200px">
+            <el-aside  :width="isCollapse?'64px':'200px'">
+                <div class="toggle-button" @click="toggleCollapse">|||</div>
                 <el-menu
                         background-color="#333744"
                         text-color="#fff"
-                        active-text-color="#ffd04b">
-                    <el-submenu index="1">
+                        active-text-color="#409eff"
+                         unique-opened
+                        :collapse="isCollapse"
+                         :collapse-transition="false"
+                            router
+                            :default-active="activePath"    >
+                    <el-submenu :index="item._id +''"  v-for="item in menulist" :key="item._id">
                         <template slot="title">
                             <i class="el-icon-location"></i>
-                            <span>导航一</span>
+                            <span>{{item.authName}}</span>
                         </template>
-                        <el-menu-item index="1-4-1">
+                        <el-menu-item @click="saveNavState('/'+subItem.path)" :index="'/'+subItem.path" v-for="subItem in item.children" :key="subItem._id">
                             <template slot="title">
-                                <i class="el-icon-location"></i>
-                                <span>导航一</span>
+                                <i class="el-icon-menu"></i>
+                                <span>{{subItem.authName}}</span>
                             </template>
                         </el-menu-item>
                     </el-submenu>
                 </el-menu>
             </el-aside>
-            <el-main>Main</el-main>
+            <el-main><router-view></router-view></el-main>
         </el-container>
     </el-container>
 </template>
@@ -35,11 +41,14 @@
 export default {
   data () {
     return {
-      menulist: []
+      menulist: [],
+      isCollapse: false,
+      activePath: ''
     }
   },
   created () {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     logout () {
@@ -50,8 +59,15 @@ export default {
       // eslint-disable-next-line standard/object-curly-even-spacing
       const { data: res } = await this.$http.get('/api/getList')
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
-      console.log(res)
-      this.menulist = res.data
+      console.log(res.lists)
+      this.menulist = res.lists
+    },
+    toggleCollapse () {
+      this.isCollapse = !this.isCollapse
+    },
+    saveNavState (activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      this.activePath = activePath
     }
   }
 }
@@ -72,11 +88,23 @@ export default {
 }
     .el-aside{
         background-color: #333744;
+        .el-menu{
+            border-right:none
+        }
     }
     .el-main{
         background-color: #eaedf1;
     }
     .home-container{
         height: 100%;
+    }
+    .toggle-button{
+        background-color:#4a5064;
+        font-size: 10px;
+        line-height: 24px;
+        color: #fff;
+        text-align: center;
+        letter-spacing: 0.2em;
+        cursor: pointer;
     }
 </style>
