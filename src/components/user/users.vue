@@ -36,27 +36,18 @@
                 <el-table-column label="操作" width="180px">
                     <template slot-scope="scope">
                         <el-button type="primary" icon="el-icon-edit" @click="showEditDialog(scope.row._id)" size="mini"></el-button>
-                        <el-button type="danger" icon="el-icon-delete"   size="mini"></el-button>
+                        <el-button type="danger" icon="el-icon-delete" @click="removeUserById(scope.row._id)"   size="mini"></el-button>
                         <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
                             <el-button type="warning" icon="el-icon-setting"  size="mini"></el-button>
                         </el-tooltip>
                     </template>
                 </el-table-column>
-                <el-pagination
-                        @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange"
-                        :current-page="currentPage4"
-                        :page-sizes="[100, 200, 300, 400]"
-                        :page-size="100"
-                        layout="total, sizes, prev, pager, next, jumper"
-                        :total="400">
-                </el-pagination>
             </el-table>
             <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
                     :current-page="queryInfo.pagenum"
-                    :page-sizes="[1, 2, 5, 10]"
+                    :page-sizes="[1, 2, 10, 20]"
                     :page-size="queryInfo.pagesize"
                     layout="total, sizes, prev, pager, next, jumper"
                     :total="total">
@@ -107,11 +98,11 @@ export default {
     return {
       queryInfo: {
         query: '',
-        pagenum: 1,
-        pagesize: 2
+        pagenum: 0,
+        pagesize: 5,
+        total: 0
       },
       userlist: [],
-      total: 0,
       addDialogVisible: false,
       addFormRules: {
         username: [
@@ -155,9 +146,9 @@ export default {
   methods: {
     async getUserList () {
       const { data: res } = await this.$http.get('/api/users', { params: this.queryInfo })
+      this.total = res.length
       // if (res !== 200) return this.$message.error('获取用户列表失败')
       this.userlist = res
-      this.total = res.length
       console.log(res)
     },
     handleSizeChange (newSize) {
@@ -240,6 +231,28 @@ export default {
         this.$message.success('修改成功')
         this.getUserList()
       })
+    },
+    async removeUserById (id) {
+      let params = {
+        _id: id
+      }
+      console.log(id)
+      const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      console.log(confirmResult)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$http.post('api/delusers', params)
+      console.log(res)
+      if (res.meta.status !== 200) {
+        return this.$message.error('删除用户失败')
+      }
+      this.$message.success('删除用户成功')
+      this.getUserList()
     }
   }
 }

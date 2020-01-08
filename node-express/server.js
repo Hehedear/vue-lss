@@ -25,7 +25,9 @@ app.use((req, res, next) => {
     }
 })
 app.get('/api/users',async(req,res)=>{
-    const users = await User.find({'username': {$regex: req.query.query, $options:'i'}})
+    const users = await User.find({'username': {$regex: req.query.query, $options:'i'}}).limit(Number(req.query.pagesize)).skip(Number(req.query.pagenum))
+    const userss = await User.find().count()
+    console.log(userss)
     res.send(users)
 })//.skip('pagesize'+'total) .limit(total)
 const auth = async (req,res,next)=>{
@@ -181,6 +183,17 @@ app.put('/api/updateName', async (req, res) => {
         }
     })
     console.log(req.body)
+})
+app.post('/api/delusers', async (req, res) => {
+    const users = await User.findById(req.body._id)
+    const user = await User.deleteOne({'_id': req.body._id })
+        res.send({
+            users,
+            meta:{
+                message:'删除用户成功',
+                status:200
+            }
+        })
 })
 app.listen(3001,()=>{
     console.log('http://localhost:3001')

@@ -5,8 +5,9 @@ mongoose.connect('mongodb://localhost:27017/express-auth',{
 })
 const UserSchema = new mongoose.Schema({
     username:{type:String,unique: true },
-    total:{type:String},
-    pagesize:{type:String},
+    total:{type:Number},
+    pagenum:{type:Number},
+    pagesize:{type:Number},
     mg_state:{type:Boolean},
     password:{type:String,
     set(val){
