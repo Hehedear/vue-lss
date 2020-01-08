@@ -10,7 +10,7 @@
                 <el-col :span="8">
                     <el-input placeholder="请输入内容" v-model="queryInfo.query" clearable @clear="getUserList">
                         <el-button slot="append" icon="el-icon-search"
-                        @click="getUserList"></el-button>
+                                   @click="getUserList"></el-button>
                     </el-input>
                 </el-col>
                 <el-col :span="4">
@@ -35,9 +35,8 @@
                 </el-table-column>
                 <el-table-column label="操作" width="180px">
                     <template slot-scope="scope">
-                        {{scope.row}}
-                        <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
-                        <el-button type="danger" icon="el-icon-delete"  size="mini"></el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="showEditDialog(scope.row._id)" size="mini"></el-button>
+                        <el-button type="danger" icon="el-icon-delete"   size="mini"></el-button>
                         <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
                             <el-button type="warning" icon="el-icon-setting"  size="mini"></el-button>
                         </el-tooltip>
@@ -68,7 +67,7 @@
                 :visible.sync="addDialogVisible"
                 width="50%"
                 @close="addDialogClosed"
-                    >
+        >
             <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
                 <el-form-item label="用户名" prop="username">
                     <el-input v-model="addForm.username"></el-input>
@@ -80,6 +79,24 @@
             <span slot="footer" class="dialog-footer">
     <el-button @click="addDialogVisible = false">取 消</el-button>
     <el-button type="primary" @click="addUser">确 定</el-button>
+  </span>
+        </el-dialog>
+        <el-dialog
+                title="修改用户"
+                :visible.sync="editDialogVisible"
+                width="50%"
+                @close="editDialogClosed">
+            <el-form :rules="editformRules" ref="editformRef" :model="editform" label-width="70px">
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="editform.username"></el-input>
+                </el-form-item>
+                <el-form-item label="密码">
+                    <el-input v-model="editform.password" disabled></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+    <el-button @click="editDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="editUserInfo">确 定</el-button>
   </span>
         </el-dialog>
     </div>
@@ -117,6 +134,18 @@ export default {
       addForm: {
         username: '',
         password: ''
+      },
+      editDialogVisible: false,
+      editform: {},
+      editformRules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }, {
+            min: 3,
+            max: 10,
+            message: '用户名的长度在3~10字符之间',
+            trigger: 'blur'
+          }
+        ]
       }
     }
   },
@@ -171,6 +200,44 @@ export default {
         // eslint-disable-next-line no-unreachable
         this.$message.success('添加用户成功')
         this.addDialogVisible = false
+        this.getUserList()
+      })
+    },
+    async showEditDialog (id) {
+      this.editDialogVisible = true
+      console.log(id)
+      let params = {
+        _id: id
+      }
+      const { data: res } = await this.$http.get('api/selectusers', { params: params })
+      console.log(res)
+      if (res.meta.status !== 200) {
+        return this.$message.error('查询用户信息失败')
+      }
+      this.editform = res.users[0]
+      console.log(res.users)
+    },
+    editDialogClosed () {
+      this.$refs.editFormRef.resetFields()
+    },
+    editUserInfo () {
+      // eslint-disable-next-line no-unused-vars
+      let params = {
+        _id: this.editform._id,
+        username: this.editform.username
+      }
+      this.$refs.editformRef.validate(async valid => {
+        console.log(valid)
+        // eslint-disable-next-line no-useless-return
+        if (!valid) return
+        const { data: res } = await this.$http.put('api/updateName', params)
+        console.log(res)
+        console.log(res.meta)
+        if (res.meta.status !== 200) {
+          return this.$message.error('修改错误，重名')
+        }
+        this.editDialogVisible = false
+        this.$message.success('修改成功')
         this.getUserList()
       })
     }

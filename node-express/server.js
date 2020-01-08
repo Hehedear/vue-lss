@@ -142,8 +142,46 @@ app.put('/api/users', async (req, res) => {
     })
     console.log(req.body)
  })
-
-
+app.get('/api/selectusers', async (req, res) => {
+    const users = await User.find({'_id': req.query._id })
+    if(users!==null){
+        res.send({
+            users,
+            meta:{
+                message:'查询用户成功',
+                status:200
+            }
+        })
+    }
+    res.send({
+        data:null,
+        meta:{
+            message:'查询用户成功',
+            status:200
+        }
+    })
+})
+app.put('/api/updateName', async (req, res) => {
+    const user = await User.find({"username":req.body.username})
+    if(user.length==0){
+        const users = await User.updateOne({"_id":req.body._id},{$set: {"username": req.body.username}})
+        res.send({
+            user,
+            meta:{
+                message:'修改状态成功',
+                status:200
+            }
+        })
+    }
+    res.send({
+        data:null,
+        meta:{
+            message:'用户名存在修改失败',
+            status:400
+        }
+    })
+    console.log(req.body)
+})
 app.listen(3001,()=>{
     console.log('http://localhost:3001')
 })
