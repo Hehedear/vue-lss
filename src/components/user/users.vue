@@ -47,7 +47,7 @@
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
                     :current-page="queryInfo.pagenum"
-                    :page-sizes="[1, 2, 10, 20]"
+                    :page-sizes="[1, 2, 5, 20]"
                     :page-size="queryInfo.pagesize"
                     layout="total, sizes, prev, pager, next, jumper"
                     :total="total">
@@ -98,10 +98,10 @@ export default {
     return {
       queryInfo: {
         query: '',
-        pagenum: 0,
-        pagesize: 5,
-        total: 0
+        pagenum: 1,
+        pagesize: 5
       },
+      total: 0,
       userlist: [],
       addDialogVisible: false,
       addFormRules: {
@@ -146,9 +146,9 @@ export default {
   methods: {
     async getUserList () {
       const { data: res } = await this.$http.get('/api/users', { params: this.queryInfo })
-      this.total = res.length
+      this.total = res.total
       // if (res !== 200) return this.$message.error('获取用户列表失败')
-      this.userlist = res
+      this.userlist = res.data
       console.log(res)
     },
     handleSizeChange (newSize) {

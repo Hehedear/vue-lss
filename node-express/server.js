@@ -25,10 +25,20 @@ app.use((req, res, next) => {
     }
 })
 app.get('/api/users',async(req,res)=>{
-    const users = await User.find({'username': {$regex: req.query.query, $options:'i'}}).limit(Number(req.query.pagesize)).skip(Number(req.query.pagenum))
-    const userss = await User.find().count()
-    console.log(userss)
-    res.send(users)
+    const total = await User.find().count()
+    var num = 1
+    var pagesize = Number(req.query.pagesize)
+    var pagenum = Number(req.query.pagenum)-Number(num)
+    const users = await User.find({'username': {$regex: req.query.query, $options:'i'}}).limit(Number(req.query.pagesize)).skip(pagenum*pagesize)
+    console.log(total)
+    res.send({
+        data:users,
+        meta:{
+            message:'注册成功',
+            status:400,
+        },
+        total:total
+    })
 })//.skip('pagesize'+'total) .limit(total)
 const auth = async (req,res,next)=>{
     const raw = String(req.headers.authorization).split(' ').pop()
